@@ -52,6 +52,17 @@ static struct k_spinlock queue_lock;
 static void telemetry_notify_work_cb(struct k_work *work);
 static K_WORK_DEFINE(telemetry_notify_work, telemetry_notify_work_cb);
 
+static void key_telemetry_ccc_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value) {
+    ARG_UNUSED(attr);
+    notify_enabled = (value == BT_GATT_CCC_NOTIFY);
+}
+
+BT_GATT_SERVICE_DEFINE(key_telemetry_svc, BT_GATT_PRIMARY_SERVICE(&key_telemetry_svc_uuid),
+                        BT_GATT_CHARACTERISTIC(&key_telemetry_chr_uuid.uuid, BT_GATT_CHRC_NOTIFY,
+                                                BT_GATT_PERM_NONE, NULL, NULL, NULL),
+                        BT_GATT_CCC(key_telemetry_ccc_cfg_changed,
+                                    BT_GATT_PERM_READ | BT_GATT_PERM_WRITE), );
+
 static void telemetry_enqueue_frame(uint8_t type, uint8_t index, uint8_t state) {
     if (!notify_enabled) {
         return;
@@ -107,17 +118,6 @@ static void telemetry_notify_work_cb(struct k_work *work) {
         }
     }
 }
-
-static void key_telemetry_ccc_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value) {
-    ARG_UNUSED(attr);
-    notify_enabled = (value == BT_GATT_CCC_NOTIFY);
-}
-
-BT_GATT_SERVICE_DEFINE(key_telemetry_svc, BT_GATT_PRIMARY_SERVICE(&key_telemetry_svc_uuid),
-                        BT_GATT_CHARACTERISTIC(&key_telemetry_chr_uuid.uuid, BT_GATT_CHRC_NOTIFY,
-                                                BT_GATT_PERM_NONE, NULL, NULL, NULL),
-                        BT_GATT_CCC(key_telemetry_ccc_cfg_changed,
-                                    BT_GATT_PERM_READ | BT_GATT_PERM_WRITE), );
 
 static int telemetry_position_listener(const zmk_event_t *eh) {
     const struct zmk_position_state_changed *ev = as_zmk_position_state_changed(eh);
