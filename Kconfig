@@ -1,0 +1,13 @@
+menuconfig ZMK_KEY_TELEMETRY
+    bool "Enable BLE key/layer telemetry service for companion app"
+    depends on ZMK_SPLIT_ROLE_CENTRAL
+    depends on BT_PERIPHERAL
+    default n
+
+if ZMK_KEY_TELEMETRY
+
+config ZMK_KEY_TELEMETRY_MAX_NOTIFY_QUEUE
+    int "Max queued telemetry frames before the oldest is dropped"
+    default 32
+
+endif # ZMK_KEY_TELEMETRY
